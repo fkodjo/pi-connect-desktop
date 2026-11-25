@@ -13,7 +13,7 @@ const BAR_H: f64 = 40.0;
 // Only these domains (and their subdomains) can be opened in the tabs.
 const ALLOWED_DOMAINS: &[&str] = &["raspberrypi.com", "raspberrypi.org"];
 
-// Injected in every Pi Connect page: Ctrl+click on a link opens it as a new tab.
+// Injected in every Pi Connect page: Ctrl+click / middle click on a link opens it as a new tab.
 const HOOK_JS: &str = r#"
 (function () {
   if (window.__piTabHook) return;
@@ -24,15 +24,15 @@ const HOOK_JS: &str = r#"
     return el && el.href ? el : null;
   }
   function handler(e) {
-    if (!e.ctrlKey) return;
+    if (!(e.ctrlKey || e.metaKey || e.button === 1)) return;
     var a = findLink(e);
     if (!a) return;
     e.preventDefault();
     e.stopPropagation();
-    // The marker tells the app this popup comes from Ctrl+click (=> new tab).
-    window.open(a.href + (a.hash ? '__pitab' : '#__pitab'), '_blank');
+    window.open(a.href, '_blank');
   }
   document.addEventListener('click', handler, true);
+  document.addEventListener('auxclick', handler, true);
 })();
 
 // window.open() is denied by the app (the link becomes a tab instead). Many pages then fall back
@@ -263,26 +263,10 @@ fn add_tab(app: &AppHandle, label: &str, url: Option<tauri::Url>) -> Result<(), 
         })
         .on_new_window(move |u, _features| {
             eprintln!("New window request: {u}");
-            let frag = u.fragment().unwrap_or("").to_string();
-            if let Some(rest) = frag.strip_suffix("__pitab") {
-                // Ctrl+click: open in a new tab
-                let mut real = u.clone();
-                real.set_fragment(if rest.is_empty() { None } else { Some(rest) });
-                if allowed(&real) {
-                    open_link_in_tab(&app_for_popups, id, real);
-                } else {
-                    eprintln!("Popup blocked: {real}");
-                }
-            } else if u.scheme() == "about" {
+            if u.scheme() == "about" {
                 // blank popup: the real address is assigned afterwards
             } else if allowed(&u) {
-                // Popup / target=_blank without Ctrl: stay in the current tab
-                let app2 = app_for_popups.clone();
-                std::thread::spawn(move || {
-                    if let Some(wv) = app2.get_webview(&tab_label(id)) {
-                        let _ = wv.navigate(u);
-                    }
-                });
+                open_link_in_tab(&app_for_popups, id, u);
             } else {
                 eprintln!("Popup blocked: {u}");
             }
