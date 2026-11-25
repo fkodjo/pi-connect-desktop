@@ -11,7 +11,7 @@ Built with [Tauri v2](https://tauri.app) (Rust + WebView2).
 - **Tabs**: `+` opens a new tab, `✕` closes it. Closing the last tab closes the window.
 - **Detach / attach**: `⧉` moves a tab into its own window, `↩` moves it back to the main window. The tab is moved, not reloaded, so a running remote shell stays connected.
 - **Ctrl+click**: Ctrl+click on a link inside Pi Connect opens it in a new tab. A normal click (or a link that wants a popup) stays in the current tab.
-- **Device names as tab titles**: tabs are named after the device you are connected to (e.g. `neurogreen`) instead of a number. Names are learned from the device list page.
+- **Device names as tab titles**: tabs are named after the device you are connected to (e.g. `fkodjo_pi`) instead of a number. Names are learned from the device list page.
 - **Stays signed in**: the session is kept between launches.
 - **Locked to Raspberry Pi**: only `raspberrypi.com` and `raspberrypi.org` (and subdomains) can be loaded. Anything else is blocked.
 
