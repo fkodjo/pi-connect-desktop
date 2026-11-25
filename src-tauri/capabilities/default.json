@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Permissions for the tab bar UI",
+  "windows": ["main", "win-*"],
+  "permissions": ["core:default"]
+}

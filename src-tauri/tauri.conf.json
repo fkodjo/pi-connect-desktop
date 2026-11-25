@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Pi Connect",
+  "version": "0.2.0",
+  "identifier": "com.kodjo.piconnect",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/pi_connect_1024.png", "icons/pi_connect_1024.ico"]
+  }
+}

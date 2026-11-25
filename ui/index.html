@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Tabs</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1e1e24;
+    font: 13px "Segoe UI", sans-serif; color: #ddd; user-select: none; }
+  #bar { display: flex; align-items: center; height: 40px; padding: 0 6px; gap: 4px; box-sizing: border-box; }
+  .tab { display: flex; align-items: center; gap: 4px; max-width: 220px; padding: 6px 6px 6px 12px;
+    border-radius: 8px; background: #2b2b33; cursor: pointer; white-space: nowrap; }
+  .tab:hover { background: #36363f; }
+  .tab.active { background: #c51a4a; color: #fff; }
+  .tab .t { overflow: hidden; text-overflow: ellipsis; margin-right: 4px; }
+  .btn { border: none; background: transparent; color: inherit; cursor: pointer;
+    border-radius: 4px; padding: 2px 6px; font-size: 14px; line-height: 1; }
+  .btn:hover { background: rgba(255,255,255,.22); }
+  #plus { font-size: 20px; padding: 2px 10px; color: #ddd; }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<script>
+  const { invoke } = window.__TAURI__.core;
+  const { listen } = window.__TAURI__.event;
+  const bar = document.getElementById('bar');
+  let myWindow = null;
+
+  function btn(text, title, fn) {
+    const b = document.createElement('button');
+    b.className = 'btn'; b.textContent = text; b.title = title;
+    b.onclick = (e) => { e.stopPropagation(); fn(); };
+    return b;
+  }
+
+  function render(s) {
+    bar.innerHTML = '';
+    s.tabs.forEach((t) => {
+      const el = document.createElement('div');
+      el.className = 'tab' + (t.id === s.active ? ' active' : '');
+      el.onclick = () => invoke('select_tab', { id: t.id });
+      el.onauxclick = (e) => { if (e.button === 1) invoke('close_tab', { id: t.id }); };
+      const title = document.createElement('span');
+      title.className = 't'; title.textContent = t.title;
+      el.appendChild(title);
+      if (s.is_main && s.tabs.length > 1) {
+        el.appendChild(btn('⧉', 'Detach to a new window', () => invoke('detach_tab', { id: t.id })));
+      }
+      if (!s.is_main) {
+        el.appendChild(btn('↩', 'Attach to the main window', () => invoke('attach_tab', { id: t.id })));
+      }
+      el.appendChild(btn('✕', 'Close', () => invoke('close_tab', { id: t.id })));
+      bar.appendChild(el);
+    });
+    const plus = btn('+', 'New tab', () => invoke('new_tab'));
+    plus.id = 'plus';
+    bar.appendChild(plus);
+  }
+
+  listen('tabs-changed', (e) => { if (e.payload.window === myWindow) render(e.payload); });
+  invoke('get_state').then((s) => { myWindow = s.window; render(s); });
+</script>
+</body>
+</html>
